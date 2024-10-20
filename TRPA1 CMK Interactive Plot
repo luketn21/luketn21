@@ -1,0 +1,142 @@
+# Load required libraries
+library(ggplot2)
+library(dplyr)
+library(plotly)
+library(esquisse)
+library(htmlwidgets)
+# Load all contact data for CMK and TRPA1
+TRPA1_1.1 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_1.1.csv")
+TRPA1_1.2 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_1.2.csv")
+TRPA1_1.3 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_1.3.csv")
+TRPA1_2.1 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_2.1.csv")
+TRPA1_2.2 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_2.2.csv")
+TRPA1_3.1 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_3.1.csv")
+TRPA1_3.2 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_3.2.csv")
+TRPA1_4.1 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_4.1.csv")
+TRPA1_4.2 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_4.2.csv")
+TRPA1_5.1 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_5.1.csv")
+TRPA1_5.2 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_5.2.csv")
+TRPA1_6.1 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_6.1.csv")
+TRPA1_6.2 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_6.2.csv")
+TRPA1_7.1 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_7.1.csv")
+TRPA1_7.2 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_7.2.csv")
+TRPA1_8.1 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_8.1.csv")
+TRPA1_8.2 <- read.csv("/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/TRPA1 CMK Contact Points 10A R Output/contact_residue_positions_TRPA1_CMK_8.2.csv")
+
+# Add a column identifying the dataset in each contact file
+datasets <- list(
+  TRPA1_1.1 = TRPA1_1.1,
+  TRPA1_1.2 = TRPA1_1.2,
+  TRPA1_1.3 = TRPA1_1.3,
+  TRPA1_2.1 = TRPA1_2.1,
+  TRPA1_2.2 = TRPA1_2.2,
+  TRPA1_3.1 = TRPA1_3.1,
+  TRPA1_3.2 = TRPA1_3.2,
+  TRPA1_4.1 = TRPA1_4.1,
+  TRPA1_4.2 = TRPA1_4.2,
+  TRPA1_5.1 = TRPA1_5.1,
+  TRPA1_5.2 = TRPA1_5.2,
+  TRPA1_6.1 = TRPA1_6.1,
+  TRPA1_6.2 = TRPA1_6.2,
+  TRPA1_7.1 = TRPA1_7.1,
+  TRPA1_7.2 = TRPA1_7.2,
+  TRPA1_8.1 = TRPA1_8.1,
+  TRPA1_8.2 = TRPA1_8.2
+)
+
+# Assigning the actual model names as Dataset
+for (name in names(datasets)) {
+  datasets[[name]]$Dataset <- name  # Use the actual model names as dataset names
+}
+
+# Combine all data into a single dataframe
+all_contacts <- bind_rows(datasets)
+
+# Function to adjust the residues for Chain B
+adjust_chain_b_residue <- function(residue) {
+  if (residue <= 1119) {
+    return(residue)  # No adjustment needed for residues 1–1119
+  } else if (residue > 1119 && residue <= 2238) {
+    return(residue - 1118)  # Subtract 1118 for residues 1120–2238
+  } else if (residue > 2238 && residue <= 3357) {
+    return(residue - 2236)  # Subtract 2236 for residues 2239–3357
+  } else if (residue > 3357 && residue <= 4476) {
+    return(residue - 3354)  # Subtract 3354 for residues 3358–4476
+  } else {
+    return(NA)  # Handle unexpected residue values
+  }
+}
+
+# Function to adjust the residues for Chain A
+adjust_chain_a_residue <- function(residue) {
+  if (residue <= 381) {
+    return(residue)  # No adjustment needed for residues 1–381
+  } else {
+    return(residue - 380)  # Subtract 380 for residues > 381
+  }
+}
+
+# Apply the adjustment function to Chain_A_Residue column
+all_contacts$Adjusted_Chain_A_Residue <- sapply(all_contacts$Chain_A_Residue, adjust_chain_a_residue)
+
+# Apply the adjustment function to Chain_B_Residue column
+all_contacts$Adjusted_Chain_B_Residue <- sapply(all_contacts$Chain_B_Residue, adjust_chain_b_residue)
+
+#highlight Structured Region (~446-1078)
+highlight_regions1 <- data.frame(
+  xmin = c(446),
+  xmax = c(1078),
+  ymin = rep(min(all_contacts$Adjusted_Chain_A_Residue), 1),  # Adjust as needed
+  ymax = rep(max(all_contacts$Adjusted_Chain_A_Residue), 1)   # Adjust as needed
+)
+
+#highlight Transmembrane Domains
+highlight_regions2 <- data.frame(
+  xmin = c(719, 768, 799, 830, 863, 934),
+  xmax = c(739, 793, 823, 850, 892, 960),
+  ymin = rep(min(all_contacts$Adjusted_Chain_A_Residue), 1),  # Adjust as needed
+  ymax = rep(max(all_contacts$Adjusted_Chain_A_Residue), 1)   # Adjust as needed
+)
+
+#highlight Intramembrane Domain
+highlight_regions3 <- data.frame(
+  xmin = c(902),
+  xmax = c(922),
+  ymin = rep(min(all_contacts$Adjusted_Chain_A_Residue), 1),  # Adjust as needed
+  ymax = rep(max(all_contacts$Adjusted_Chain_A_Residue), 1)   # Adjust as needed
+)
+
+# Create the ggplot with adjusted Chain B residues
+p <- ggplot(all_contacts, aes(x = Adjusted_Chain_B_Residue, y = Adjusted_Chain_A_Residue, color = Dataset)) +
+  geom_rect(data = highlight_regions1, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            fill = "lightblue", alpha = 0.4, inherit.aes = FALSE) +geom_point(size = 1.5, alpha = 0.8) +
+  geom_rect(data = highlight_regions2, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            fill = "orangered", alpha = 0.4, inherit.aes = FALSE) +
+  geom_rect(data = highlight_regions3, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            fill = "yellow", alpha = 0.4, inherit.aes = FALSE) +geom_point(size = 1.5, alpha = 0.8) +
+  geom_point(size = 1.5, alpha = 0.8) +
+  scale_color_manual(values = c("red", "blue", "green", "purple", "orange", "pink",
+                                "brown", "cyan", "yellow", "black", "magenta",
+                                "gray", "navy", "darkgreen", "coral", "violet", "gold")) +
+  theme_minimal() +
+  labs(title = "Contact Points Between CMK (Chain A) and TRPA1 (Adjusted Chain B)",
+       x = "Adjusted TRPA1 Residues (Chain B)",
+       y = "Adjusted CMK Residues (Chain A)",
+       color = "Model") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Save the ggplot
+ggsave("contact_points_plot.png", plot = p, width = 10, height = 7)
+
+# Create an interactive plot using plotly
+interactive_plot <- ggplotly(p)
+
+interactive_plot
+
+# Use the ggplot object 'p' with ggplot_to_ppt()
+ggplot_to_ppt(p)
+
+# Save the interactive plot as an HTML file
+saveWidget(interactive_plot, file = "/Users/lukenelson/Documents/EV_Project/Protein-Protein Associations Modeling/TRPA1 CMK Complex/contact_points_interactive_plot.html")
+
+
